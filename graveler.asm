@@ -70,10 +70,10 @@ join: ;join with pid = forkResults[r14], r15 = max(exitCode, r15)
     mov r10, 0
     mov rdx, 0
     syscall
-	mov esi, 0
+    mov esi, 0
     mov sil, [siginfo+1]
-	cmp rsi, r15
-	cmovg r15, rsi
+    cmp rsi, r15
+    cmovg r15, rsi
     inc r14
     ret
 
