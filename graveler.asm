@@ -1,6 +1,7 @@
 sys_exit: equ 60
 sys_fork: equ 57
 sys_waitid: equ 247
+WEXITED: equ 4
 P_PID: equ 1
 extern _start
 
@@ -8,6 +9,30 @@ extern _start
 section .data
 
 forkResults:
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
 dd 0
 dd 0
 dd 0
@@ -28,7 +53,7 @@ section .text
 
 
 join: ;join with pid = forkResults[r14], r15 = max(exitCode, r15)
-    
+
     mov esi, [forkResults + r14 * 4]
     cmp esi, 0
     jne .cont
@@ -40,7 +65,7 @@ join: ;join with pid = forkResults[r14], r15 = max(exitCode, r15)
     mov edi, P_PID
     lea rdx, [siginfo]
     mov r8, 0
-    mov r10, 0
+    mov r10, WEXITED
     syscall
     mov esi, [siginfo + 8]; assume __ARCH_HAS_SWAPPED_SIGINFO is false
     cmp r15, rsi
@@ -51,21 +76,25 @@ join: ;join with pid = forkResults[r14], r15 = max(exitCode, r15)
 fork:
     mov eax, sys_fork
     syscall
-    mov [rdi], rax
-    inc rdi
+    mov [forkResults + rdi * 4], eax
+    inc edi
     ret
 
 _start:
 
-    lea rdi, [forkResults]
+    mov rdi, 0
 
     call fork
     call fork
     call fork
     call fork
     call fork
+    call fork
+    call fork
+    call fork
+    call fork
 
-    mov r11, 31_250_000; loop counter. split up 1bn among 32 threads
+    mov r11, 3_906_250 / 2; loop counter. split up 1bn among 512 threads
     mov edi, 0 ; maximum value
 
 .loop:
@@ -106,6 +135,10 @@ _start:
 
     mov r14, 0
     mov r15, rdi
+    call join
+    call join
+    call join
+    call join
     call join
     call join
     call join
