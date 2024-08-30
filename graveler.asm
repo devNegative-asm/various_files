@@ -1,10 +1,9 @@
 sys_exit: equ 60
 sys_fork: equ 57
-sys_waitid: equ 247
+sys_wait4: equ 61
 WEXITED: equ 4
 P_PID: equ 1
 extern _start
-
 
 section .data
 
@@ -48,28 +47,33 @@ dq 0
 dq 0
 dq 0
 dq 0
-
+dq 0
+dq 0
+dq 0
+dq 0
+dq 0
+dq 0
 section .text
 
 
 join: ;join with pid = forkResults[r14], r15 = max(exitCode, r15)
 
-    mov esi, [forkResults + r14 * 4]
-    cmp esi, 0
+    mov edi, [forkResults + r14 * 4]
+    cmp edi, 0
     jne .cont
     inc r14
     ret
 
 .cont:
-    mov eax, sys_waitid
-    mov edi, P_PID
-    lea rdx, [siginfo]
-    mov r8, 0
-    mov r10, WEXITED
+    mov eax, sys_wait4
+    lea rsi, [siginfo]
+    mov r10, 0
+    mov rdx, 0
     syscall
-    mov esi, [siginfo + 8]; assume __ARCH_HAS_SWAPPED_SIGINFO is false
-    cmp r15, rsi
-    cmovl r15, rsi
+	mov esi, 0
+    mov sil, [siginfo+1]
+	cmp rsi, r15
+	cmovg r15, rsi
     inc r14
     ret
 
